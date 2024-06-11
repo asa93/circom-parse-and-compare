@@ -1,6 +1,6 @@
 {
-  "name": "circom-poc",
-  "packageManager": "yarn@3.0.2",
+  "name": "circom-parse-and-compare",
+  "author": "@asa93",
   "license": "MIT",
   "scripts": {
     "build:circom": "npx gulp",
