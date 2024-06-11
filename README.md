@@ -1,5 +1,5 @@
 # Circom Parse-and-Compare
-Extract a value from hidden string and compare it to a public value.
+Circom circuit that extracts a value from hidden string and compare it to a public value.
 
 ```
 yarn install

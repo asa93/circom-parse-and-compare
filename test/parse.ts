@@ -1,7 +1,7 @@
 const { expect } = require("chai")
-const { hello } = require("../src/circuit-wrapper.js");
+const { parse } = require("../src/circuit-wrapper.js");
 
-describe("hello", async () => {
+describe("Parse", async () => {
     it("works", async () => {
 
         101
@@ -23,10 +23,10 @@ describe("hello", async () => {
         console.log("targetBytes", targetBytes)
 
         /// minimum value accepted to pass test. HAS to be <= 2^16 = 65536
-        const minTargetValue = 24;
+        const minTargetValue = 26;
         console.log("minTargetValue", minTargetValue)
 
-        const output = await hello({ msg: msgBytes, target: targetBytes, minTargetValue })
+        const output = await parse({ msg: msgBytes, target: targetBytes, minTargetValue })
         console.log("output.publicSignals", output.publicSignals)
         expect(output.publicSignals[output.publicSignals.length - 2]).to.eq("1")
     })
