@@ -1,6 +1,7 @@
 {
   "name": "circom-poc",
   "packageManager": "yarn@3.0.2",
+  "license": "MIT",
   "scripts": {
     "build:circom": "npx gulp",
     "build:ts": "tsc",
