@@ -10,7 +10,6 @@ template ParseAndCompare (msgBytesLen, targetBytesLen ) {
    signal private input target[msgBytesLen];  /// bytes to find
    signal input minTargetValue;
 
-   signal output msg_check;  /// number of characters found
    signal output msg_checks[msgBytesLen]; 
    signal output value_checks[msgBytesLen];
 
@@ -18,15 +17,15 @@ template ParseAndCompare (msgBytesLen, targetBytesLen ) {
    signal output acc;
 
    signal output parsedValue;
-   signal output result;
+   signal output msg_check;  /// number of characters found
+   signal output result; 
 
    //CIRCUIT ============================
 
    component equals[msgBytesLen]; 
    component equalsV[msgBytesLen];
 
-   /// loop through msg bytes
-   var numBitsEqual=0;
+   /// loop through msg bytes to parse the key+value
     for (var i = 0; i < msgBytesLen; i++) {
 
       equals[i] = IsEqual();
@@ -38,49 +37,48 @@ template ParseAndCompare (msgBytesLen, targetBytesLen ) {
 
       equalsV[i] = IsEqual();
       equalsV[i].in[0] <== target[i];
-      equalsV[i].in[1] <== 42;
+
+      /// '42' UTF-8 symbol corresponds to the digits of the value from the padded target string
+      /// the padded string is publi
+      equalsV[i].in[1] <== 42; 
       value_checks[i] <== equalsV[i].out*(msg[i] - 48) ; 
 
     }
 
- 
+  
+  /// calculate the value by summing all digits
    component gt2[msgBytesLen];
    component iz[msgBytesLen] = IsZero();
-
-   //component gt3[msgBytesLen];
- 
     for (var j=0; j<msgBytesLen; j++){
       gt2[j] = GreaterThan(8);
       gt2[j].in[0] <== value_checks[j];
       gt2[j].in[1] <== 0;
       
       iz[j].in <== parsedValue;
-      minus[j] <== minus[j] + iz[j].out*gt2[j].out ;
-
       parsedValue <== parsedValue + gt2[j].out*(parsedValue*10 + value_checks[j]) ;
-
+      minus[j] <== minus[j] + iz[j].out*gt2[j].out ; /// will be useful in the next loop
     }
 
+    /// adjust parsed value by substracting the first extra number accounted during the first loop
     for (var k=0; k<msgBytesLen; k++){
-      acc <== acc + minus[k]*value_checks[k]
+      acc <== acc + minus[k]*value_checks[k];
+
+      /// we clean that output signals that are useless now 
+      value_checks[k] <== 0; 
+      minus[k] <== 0;
+
+
     }
     parsedValue <== parsedValue - acc;
-   //  for (var k=0; k<msgBytesLen; k++){
-   //          iz[k].in <== value_checks[k-1];
-
-   //          gt3[k] = GreaterThan(8);
-   //          gt3[k].in[0] <== value_checks[k];
-   //          gt3[k].in[1] <== 0;
-
-   //          parsedValue <== parsedValue - iz[k].out*gt3[k].out ;
-   //  }
 
     component gt  = GreaterEqThan(16);
       gt.in[0] <==  parsedValue;
       gt.in[1] <== minTargetValue ;
       result <== gt.out; 
 
-      //parsedValue <== 33
+      /// clean transitory signal arrays that are useless now and might reveal information
+      parsedValue <== 0
+      acc <== 0
 
 }
 
