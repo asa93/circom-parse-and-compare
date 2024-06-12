@@ -4,30 +4,32 @@ const { parse } = require("../src/circuit-wrapper.js");
 describe("Parse", async () => {
     it("returns 0 if values are equal", async () => {
         /// http response
-        const msg = "{likes:333,follow:5}"
+        const msg = "{likes:311,follow:5}"
         const msgBytes = toBytesArr(msg);
-        console.log("msg", msg, msg.length)
 
         /// PRIVATE key-value string that we are looking for
         const key = "likes:"
         const value = "xxx" // has to be same length
         /// paddedTarget will be PUBLIC to be able to verify that the computation has been done correctly
-        const paddedTarget = padTarget(key, value, msg)
-        console.log("padded msg", paddedTarget, paddedTarget.length)
-        const targetBytes = toBytesArr(paddedTarget)
-        console.log("msg bytes", msgBytes)
-        console.log("targetBytes", targetBytes)
+        const paddedExpression = padTarget(key, value, msg)
+        const expressionBytes = toBytesArr(paddedExpression)
 
         /// minimum value accepted to pass test. HAS to be <= 2^16 = 65536
-        const minTargetValue = 222;
-        console.log("minTargetValue", minTargetValue)
-        const paddedMinTgtValue = padValue(minTargetValue.toString(), paddedTarget)
-        console.log("paddedMinTgtValue", paddedMinTgtValue)
-        const minValueBytes = toBytesArr(paddedMinTgtValue)
-        console.log("minValueBytes", minValueBytes)
+        const comparisonValue = 222;
+        const paddedValue = padValue(comparisonValue.toString(), paddedExpression)
+        const comparisonValueBytes = toBytesArr(paddedValue)
 
-        const output = await parse({ msg: msgBytes, expression: targetBytes, comparisonValue: minValueBytes })
+        const output = await parse({ msg: msgBytes, expression: expressionBytes, comparisonValue: comparisonValueBytes })
+
+        console.log("msg", msg, msg.length)
+        console.log("paddedExpression", paddedExpression, paddedExpression.length)
+        console.log("msgBytes", msgBytes)
+        console.log("expressionBytes", expressionBytes)
+        console.log("comparisonValue", comparisonValue)
+        console.log("paddedValue", paddedValue)
+        console.log("comparisonValueBytes", comparisonValueBytes)
         console.log("output.publicSignals", output.publicSignals)
+
         expect(output.publicSignals[output.publicSignals.length - 1]).to.eq("1")
     })
 
