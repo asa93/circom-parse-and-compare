@@ -35,6 +35,7 @@ describe("Parse", async () => {
         console.log("paddedValue_____", paddedValue, paddedValue.length)
 
         expect(output.publicSignals[21]).to.eq("0")
+        expect(output.publicSignals[20]).to.eq("6")
     })
     it("returns 1 if parsed value is greater", async () => {
         /// http response
@@ -53,6 +54,7 @@ describe("Parse", async () => {
         const output = await parse({ msg: msgBytes, expression: expressionBytes, comparisonValue: comparisonValueBytes })
 
         expect(output.publicSignals[21]).to.eq("1")
+        expect(output.publicSignals[20]).to.eq("6")
     })
 
     it("returns 2 if parsed value is smaller", async () => {
@@ -72,6 +74,70 @@ describe("Parse", async () => {
         const output = await parse({ msg: msgBytes, expression: expressionBytes, comparisonValue: comparisonValueBytes })
 
         expect(output.publicSignals[21]).to.eq("2")
+        expect(output.publicSignals[20]).to.eq("6")
+    })
+
+    it("fails if expression is tampered", async () => {
+        const msg = "{likes:189,follow:5}"
+        const comparisonValue = 222;
+
+        const key = "likes:"
+        const value = "xxx"
+
+        const msgBytes = toBytesArr(msg);
+        let paddedExpression = padTarget(key, value, msg)
+
+        //🚨 ======== manipulate expression HERE 
+        paddedExpression = paddedExpression.replace("likes", "token")
+        const expressionBytes = toBytesArr(paddedExpression)
+
+        const paddedValue = padValue(comparisonValue.toString(), paddedExpression)
+        const comparisonValueBytes = toBytesArr(paddedValue)
+
+        const output = await parse({ msg: msgBytes, expression: expressionBytes, comparisonValue: comparisonValueBytes })
+
+        console.log("msg_____________", msg, msg.length, "(HIDDEN)")
+        console.log("paddedExpression", paddedExpression, paddedExpression.length)
+        console.log("paddedValue_____", paddedValue, paddedValue.length)
+
+        // 🚨 we don't even need to check comparion result here
+        // expect(output.publicSignals[21]).to.eq("2")
+
+
+        // number of key characters != key.length since key has been manipulated
+        //moreover the manipulation is obvious to observer since the expression is public
+        expect(output.publicSignals[20]).to.not.eq("6")
+    })
+
+    it("fails if expression is tampered in a more ingenious way", async () => {
+        const msg = "{likes:189,token:5}"
+        const comparisonValue = 222;
+
+        const key = "likes:"
+        const value = "xxx"
+
+        const msgBytes = toBytesArr(msg);
+
+        //🚨 ======== manipulate expression HERE 
+        // here the manipulation is not obvious for observers who don't have access to the hidden message
+        let manipulatedMsg = msg.replace("likes", "nabot")
+        manipulatedMsg = manipulatedMsg.replace("token", "likes")
+        let paddedExpression = padTarget(key, value, manipulatedMsg)
+
+        const expressionBytes = toBytesArr(paddedExpression)
+
+        const paddedValue = padValue(comparisonValue.toString(), paddedExpression)
+        const comparisonValueBytes = toBytesArr(paddedValue)
+
+        const output = await parse({ msg: msgBytes, expression: expressionBytes, comparisonValue: comparisonValueBytes })
+
+        console.log("msg_____________", msg, msg.length, "(HIDDEN)")
+        console.log("paddedExpression", paddedExpression, paddedExpression.length)
+        console.log("paddedValue_____", paddedValue, paddedValue.length)
+
+
+        // number of key characters != key.length since key has been manipulated        
+        expect(output.publicSignals[20]).to.not.eq("6")
     })
 
 
