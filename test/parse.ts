@@ -4,33 +4,74 @@ const { parse } = require("../src/circuit-wrapper.js");
 describe("Parse", async () => {
     it("returns 0 if values are equal", async () => {
         /// http response
-        const msg = "{likes:311,follow:5}"
-        const msgBytes = toBytesArr(msg);
-
-        /// PRIVATE key-value string that we are looking for
+        const msg = "{likes:222,follow:5}"
+        const comparisonValue = 222;
         const key = "likes:"
         const value = "xxx" // has to be same length
+
+        const msgBytes = toBytesArr(msg);
+        /// PRIVATE key-value string that we are looking for
         /// paddedTarget will be PUBLIC to be able to verify that the computation has been done correctly
         const paddedExpression = padTarget(key, value, msg)
         const expressionBytes = toBytesArr(paddedExpression)
 
         /// minimum value accepted to pass test. HAS to be <= 2^16 = 65536
-        const comparisonValue = 222;
+
         const paddedValue = padValue(comparisonValue.toString(), paddedExpression)
         const comparisonValueBytes = toBytesArr(paddedValue)
 
         const output = await parse({ msg: msgBytes, expression: expressionBytes, comparisonValue: comparisonValueBytes })
 
-        console.log("msg", msg, msg.length)
-        console.log("paddedExpression", paddedExpression, paddedExpression.length)
+
         console.log("msgBytes", msgBytes)
-        console.log("expressionBytes", expressionBytes)
         console.log("comparisonValue", comparisonValue)
-        console.log("paddedValue", paddedValue)
+
+        console.log("expressionBytes", expressionBytes)
         console.log("comparisonValueBytes", comparisonValueBytes)
         console.log("output.publicSignals", output.publicSignals)
 
-        expect(output.publicSignals[output.publicSignals.length - 1]).to.eq("1")
+        console.log("msg_____________", msg, msg.length, "(HIDDEN)")
+        console.log("paddedExpression", paddedExpression, paddedExpression.length)
+        console.log("paddedValue_____", paddedValue, paddedValue.length)
+
+        expect(output.publicSignals[21]).to.eq("0")
+    })
+    it("returns 1 if parsed value is greater", async () => {
+        /// http response
+        const msg = "{likes:310,follow:5}"
+        const msgBytes = toBytesArr(msg);
+        const comparisonValue = 222;
+
+        const key = "likes:"
+        const value = "xxx"
+        const paddedExpression = padTarget(key, value, msg)
+        const expressionBytes = toBytesArr(paddedExpression)
+
+        const paddedValue = padValue(comparisonValue.toString(), paddedExpression)
+        const comparisonValueBytes = toBytesArr(paddedValue)
+
+        const output = await parse({ msg: msgBytes, expression: expressionBytes, comparisonValue: comparisonValueBytes })
+
+        expect(output.publicSignals[21]).to.eq("1")
+    })
+
+    it("returns 2 if parsed value is smaller", async () => {
+        const msg = "{likes:189,follow:5}"
+        const comparisonValue = 222;
+
+        const key = "likes:"
+        const value = "xxx"
+
+        const msgBytes = toBytesArr(msg);
+        const paddedExpression = padTarget(key, value, msg)
+        const expressionBytes = toBytesArr(paddedExpression)
+
+        const paddedValue = padValue(comparisonValue.toString(), paddedExpression)
+        const comparisonValueBytes = toBytesArr(paddedValue)
+
+        const output = await parse({ msg: msgBytes, expression: expressionBytes, comparisonValue: comparisonValueBytes })
+
+        expect(output.publicSignals[21]).to.eq("2")
     })
 
 

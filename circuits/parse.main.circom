@@ -13,8 +13,8 @@ template ParseAndCompare (msgBytesLen ) {
    // SIGNALS =================================
    //INPUTS
    signal private input  msg[msgBytesLen]; /// plaintext 
-   signal private input expression[msgBytesLen];  /// bytes of key to find | NOTE: TO SWITCH TO PUBLIC to control that the user created the proof correctly
-   signal private input comparisonValue[msgBytesLen];  /// bytes of value to find, padded.
+   signal input expression[msgBytesLen];  /// bytes of key to find | NOTE: TO SWITCH TO PUBLIC to control that the user created the proof correctly
+   signal input comparisonValue[msgBytesLen];  /// bytes of value to find, padded.
    
 
   // OUTPUTS
