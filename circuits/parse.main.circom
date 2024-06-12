@@ -1,29 +1,36 @@
 include "../node_modules/circomlib/circuits/comparators.circom";
-include "../node_modules/circomlib/circuits/poseidon.circom";
 
-include "./quinselector.circom";
+/// This circuit parses an integer from a string (bytes array) and compares it to another value passed as parameter
+/// all values are padded to have the same length in order to facilitates circuit execution
+/// they are padded with character '+' = charcode(42) and '*' = charcode(43)
+/// RESULT is such that: 
+///             - 0 = values are EQUAL
+///             - 1 = parsed value is GREATER than target value   
+///             - 2 = parsed value is SMALLER than target value  
 
 template ParseAndCompare (msgBytesLen, targetBytesLen ) {
 
    // SIGNALS =================================
-   signal private input  msg[msgBytesLen]; /// plaintext
-   signal private input target[msgBytesLen];  /// bytes to find
+   //INPUTS
+   signal private input  msg[msgBytesLen]; /// plaintext 
+   signal private input target[msgBytesLen];  /// bytes of key to find | NOTE: TO SWITCH TO PUBLIC to control that the user created the proof correctly
+   signal private input minValue[msgBytesLen];  /// bytes of value to find
+   
    signal input minTargetValue;
 
-   signal output msg_checks[msgBytesLen]; 
-   signal output value_checks[msgBytesLen];
+  // OUTPUTS
+   signal output acc[msgBytesLen]; /// temporary array for the purpose of calculation.
 
-   signal output minus[msgBytesLen];
-   signal output acc;
-
-   signal output parsedValue;
-   signal output msg_check;  /// number of characters found
-   signal output result; 
+   signal output key_check;  /// number of key characters found. Has to be equal to key length.
+   signal output comparison_result;  /// comparison result : 1 = value is greater than min; 2 = value smaller ; 0 = equal
 
    //CIRCUIT ============================
 
    component equals[msgBytesLen]; 
    component equalsV[msgBytesLen];
+
+   component gt[msgBytesLen];
+   component gt2[msgBytesLen];
 
    /// loop through msg bytes to parse the key+value
     for (var i = 0; i < msgBytesLen; i++) {
@@ -32,53 +39,37 @@ template ParseAndCompare (msgBytesLen, targetBytesLen ) {
       equals[i].in[0] <== msg[i];
       equals[i].in[1] <== target[i];
 
-      msg_check <== equals[i].out + msg_check
-      msg_checks[i] <== equals[i].out;  
+      key_check <== equals[i].out + key_check
 
+      //parse digits
       equalsV[i] = IsEqual();
       equalsV[i].in[0] <== target[i];
-
-      /// '42' UTF-8 symbol corresponds to the digits of the value from the padded target string
-      /// the padded string is publi
+      // '42' UTF-8 symbol corresponds to the digits of the value from the padded target string
+      // msg[i] = plain digit, target[i]='*'=42
       equalsV[i].in[1] <== 42; 
-      value_checks[i] <== equalsV[i].out*(msg[i] - 48) ; 
+
+      // compare parsed digits 
+      gt[i] = GreaterThan(8);
+      gt[i].in[0] <== equalsV[i].out*msg[i] + (1-equalsV[i].out)*43;
+      gt[i].in[1] <== minValue[i];
+
+      gt2[i] = LessThan(8);
+      gt2[i].in[0] <== equalsV[i].out*msg[i] + (1-equalsV[i].out)*43;
+      gt2[i].in[1] <== minValue[i];
+
+      acc[i] <== gt[i].out*1 + gt2[i].out*2
 
     }
-
-  
-  /// calculate the value by summing all digits
-   component gt2[msgBytesLen];
-   component iz[msgBytesLen] = IsZero();
+    component gt3[msgBytesLen];
+    // fill accumulator
     for (var j=0; j<msgBytesLen; j++){
-      gt2[j] = GreaterThan(8);
-      gt2[j].in[0] <== value_checks[j];
-      gt2[j].in[1] <== 0;
-      
-      iz[j].in <== parsedValue;
-      parsedValue <== parsedValue + gt2[j].out*(parsedValue*10 + value_checks[j]) ;
-      minus[j] <== minus[j] + iz[j].out*gt2[j].out ; /// will be useful in the next loop
-    }
+       
+      gt3[j] = IsZero();
+      gt3[j].in <== comparison_result;
 
-    /// adjust parsed value by substracting the first extra number accounted during the first loop
-    for (var k=0; k<msgBytesLen; k++){
-      acc <== acc + minus[k]*value_checks[k];
-
-      /// we clean that output signals that are useless now 
-      value_checks[k] <== 0; 
-      minus[k] <== 0;
-
+      comparison_result <== comparison_result + acc[j]* gt3[j].out
 
     }
-    parsedValue <== parsedValue - acc;
-
-    component gt  = GreaterEqThan(16);
-      gt.in[0] <==  parsedValue;
-      gt.in[1] <== minTargetValue ;
-      result <== gt.out; 
-
-      /// clean transitory signal arrays that are useless now and might reveal information
-      parsedValue <== 0
-      acc <== 0
 
 }
 

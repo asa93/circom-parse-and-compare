@@ -4,29 +4,31 @@ const { parse } = require("../src/circuit-wrapper.js");
 describe("Parse", async () => {
     it("works", async () => {
 
-        101
-        99
 
         /// http response
-        const msg = "{likes:25,follows:5}"
+        const msg = "{likes:222,follow:5}"
         const msgBytes = toBytesArr(msg);
         console.log("msg", msg, msg.length)
 
         /// PRIVATE key-value string that we are looking for
         const key = "likes:"
-        const value = "25"
+        const value = "xxx" // has to be same length
         /// paddedTarget will be PUBLIC to be able to verify that the computation has been done correctly
-        const padded = padTarget(key, value, msg)
-        console.log("padded msg", padded, padded.length)
-        const targetBytes = toBytesArr(padded)
+        const paddedTarget = padTarget(key, value, msg)
+        console.log("padded msg", paddedTarget, paddedTarget.length)
+        const targetBytes = toBytesArr(paddedTarget)
         console.log("msg bytes", msgBytes)
         console.log("targetBytes", targetBytes)
 
         /// minimum value accepted to pass test. HAS to be <= 2^16 = 65536
-        const minTargetValue = 26;
+        const minTargetValue = 222;
         console.log("minTargetValue", minTargetValue)
+        const paddedMinTgtValue = padValue(minTargetValue.toString(), paddedTarget)
+        console.log("paddedMinTgtValue", paddedMinTgtValue)
+        const minValueBytes = toBytesArr(paddedMinTgtValue)
+        console.log("minValueBytes", minValueBytes)
 
-        const output = await parse({ msg: msgBytes, target: targetBytes, minTargetValue })
+        const output = await parse({ msg: msgBytes, target: targetBytes, minValue: minValueBytes, minTargetValue })
         console.log("output.publicSignals", output.publicSignals)
         expect(output.publicSignals[output.publicSignals.length - 2]).to.eq("1")
     })
@@ -45,6 +47,15 @@ function padTarget(target: string, value: string, msg: string): string {
         else out += msg[j]
     }
     return out;
+}
+
+function padValue(value: string, msg: string) {
+
+    let padded = ""
+    for (let i = 0; i < msg.length; i++) {
+        padded += msg[i] !== "*" ? "+" : msg[i]
+    }
+    return padded.replace("*".repeat(value.length), value)
 }
 
 /// convert string to array of strying representing bytes
