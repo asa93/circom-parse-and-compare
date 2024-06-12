@@ -3,6 +3,8 @@ Circom circuit that parses a value from a string and compare it to another value
 The string (actually a bytes array) is a private signal.
 The comparison value is public signal.
 
+Note: keys cannot contain "+" character and "*" character.
+
 ```
 yarn install
 yarn build

@@ -2,9 +2,12 @@ const { expect } = require("chai")
 const { parse } = require("../src/circuit-wrapper.js");
 
 describe("Parse", async () => {
+    const MAX_LENGTH = 2000;
+
     it("returns 0 if values are equal", async () => {
+
         /// http response
-        const msg = "{likes:222,follow:5}"
+        const msg = padMsg("{likes:222,follow:5}", MAX_LENGTH)
         const comparisonValue = 222;
         const key = "likes:"
         const value = "xxx" // has to be same length
@@ -39,7 +42,8 @@ describe("Parse", async () => {
     })
     it("returns 1 if parsed value is greater", async () => {
         /// http response
-        const msg = "{likes:310,follow:5}"
+
+        const msg = padMsg("{likes:310,follow:5}", MAX_LENGTH)
         const msgBytes = toBytesArr(msg);
         const comparisonValue = 222;
 
@@ -58,7 +62,7 @@ describe("Parse", async () => {
     })
 
     it("returns 2 if parsed value is smaller", async () => {
-        const msg = "{likes:189,follow:5}"
+        const msg = padMsg("{likes:189,follow:5}", MAX_LENGTH)
         const comparisonValue = 222;
 
         const key = "likes:"
@@ -78,7 +82,7 @@ describe("Parse", async () => {
     })
 
     it("fails if expression is tampered", async () => {
-        const msg = "{likes:189,follow:5}"
+        const msg = padMsg("{likes:189,follow:5}", MAX_LENGTH)
         const comparisonValue = 222;
 
         const key = "likes:"
@@ -110,7 +114,7 @@ describe("Parse", async () => {
     })
 
     it("fails if expression is tampered in a more ingenious way", async () => {
-        const msg = "{likes:189,token:5}"
+        const msg = padMsg("{likes:189,follow:5}", MAX_LENGTH)
         const comparisonValue = 222;
 
         const key = "likes:"
@@ -147,6 +151,20 @@ export { }
 
 /// pad target value to have same length as the plaintext
 /// 
+
+function padMsg(msg: string, MAX_LENGTH: number): string {
+
+    let paddedMsg = msg
+    if (msg.length > MAX_LENGTH) throw "msg too big"
+    else if (msg.length === MAX_LENGTH) return msg
+    else {
+        for (let i = 0; i < MAX_LENGTH - msg.length; i++) {
+            paddedMsg += "+"
+        }
+        return paddedMsg
+    }
+}
+
 function padTarget(target: string, value: string, msg: string): string {
     const i = msg.indexOf(target)
     let out = ""

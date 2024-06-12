@@ -25,7 +25,8 @@ template ParseAndCompare (msgBytesLen ) {
 
    //CIRCUIT ============================
 
-   component equals[msgBytesLen]; 
+   component equals[msgBytesLen];
+   component equals2[msgBytesLen];  
    component equalsV[msgBytesLen];
 
    component gt[msgBytesLen];
@@ -39,8 +40,11 @@ template ParseAndCompare (msgBytesLen ) {
       equals[i].in[0] <== msg[i];
       equals[i].in[1] <== expression[i];
 
+      equals2[i] = IsEqual();
+      equals2[i].in[0] <== 43;
+      equals2[i].in[1] <== expression[i];
 
-      key_check <== equals[i].out + key_check
+      key_check <== equals[i].out*(1-equals2[i].out) + key_check
 
       equalsV[i] = IsEqual();
       equalsV[i].in[0] <== expression[i];
@@ -66,4 +70,4 @@ template ParseAndCompare (msgBytesLen ) {
 
 }
 
-component main = ParseAndCompare(20);
+component main = ParseAndCompare(2000);
