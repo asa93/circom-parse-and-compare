@@ -5,18 +5,17 @@ include "../node_modules/circomlib/circuits/comparators.circom";
 /// they are padded with character '+' = charcode(42) and '*' = charcode(43)
 /// RESULT is such that: 
 ///             - 0 = values are EQUAL
-///             - 1 = parsed value is GREATER than target value   
-///             - 2 = parsed value is SMALLER than target value  
+///             - 1 = parsed value is GREATER than comparison value   
+///             - 2 = parsed value is SMALLER than comparison value  
 
-template ParseAndCompare (msgBytesLen, targetBytesLen ) {
+template ParseAndCompare (msgBytesLen ) {
 
    // SIGNALS =================================
    //INPUTS
    signal private input  msg[msgBytesLen]; /// plaintext 
-   signal private input target[msgBytesLen];  /// bytes of key to find | NOTE: TO SWITCH TO PUBLIC to control that the user created the proof correctly
-   signal private input minValue[msgBytesLen];  /// bytes of value to find
+   signal private input expression[msgBytesLen];  /// bytes of key to find | NOTE: TO SWITCH TO PUBLIC to control that the user created the proof correctly
+   signal private input comparisonValue[msgBytesLen];  /// bytes of value to find, padded.
    
-   signal input minTargetValue;
 
   // OUTPUTS
    signal output acc[msgBytesLen]; /// temporary array for the purpose of calculation.
@@ -37,25 +36,24 @@ template ParseAndCompare (msgBytesLen, targetBytesLen ) {
 
       equals[i] = IsEqual();
       equals[i].in[0] <== msg[i];
-      equals[i].in[1] <== target[i];
+      equals[i].in[1] <== expression[i];
 
       key_check <== equals[i].out + key_check
 
       //parse digits
       equalsV[i] = IsEqual();
-      equalsV[i].in[0] <== target[i];
-      // '42' UTF-8 symbol corresponds to the digits of the value from the padded target string
-      // msg[i] = plain digit, target[i]='*'=42
+      equalsV[i].in[0] <== expression[i];
+      // '42' UTF-8 symbol corresponds to the digits of the value from the padded expression
       equalsV[i].in[1] <== 42; 
 
       // compare parsed digits 
       gt[i] = GreaterThan(8);
       gt[i].in[0] <== equalsV[i].out*msg[i] + (1-equalsV[i].out)*43;
-      gt[i].in[1] <== minValue[i];
+      gt[i].in[1] <== comparisonValue[i];
 
       gt2[i] = LessThan(8);
       gt2[i].in[0] <== equalsV[i].out*msg[i] + (1-equalsV[i].out)*43;
-      gt2[i].in[1] <== minValue[i];
+      gt2[i].in[1] <== comparisonValue[i];
 
       acc[i] <== gt[i].out*1 + gt2[i].out*2
 
@@ -69,8 +67,10 @@ template ParseAndCompare (msgBytesLen, targetBytesLen ) {
 
       comparison_result <== comparison_result + acc[j]* gt3[j].out
 
+      acc[j] <== 0 // clean accumulator to not leak any extra information about user data
+
     }
 
 }
 
-component main = ParseAndCompare(20, 20);
+component main = ParseAndCompare(20);

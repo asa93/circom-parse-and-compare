@@ -2,11 +2,9 @@ const { expect } = require("chai")
 const { parse } = require("../src/circuit-wrapper.js");
 
 describe("Parse", async () => {
-    it("works", async () => {
-
-
+    it("returns 0 if values are equal", async () => {
         /// http response
-        const msg = "{likes:222,follow:5}"
+        const msg = "{likes:333,follow:5}"
         const msgBytes = toBytesArr(msg);
         console.log("msg", msg, msg.length)
 
@@ -28,10 +26,12 @@ describe("Parse", async () => {
         const minValueBytes = toBytesArr(paddedMinTgtValue)
         console.log("minValueBytes", minValueBytes)
 
-        const output = await parse({ msg: msgBytes, target: targetBytes, minValue: minValueBytes, minTargetValue })
+        const output = await parse({ msg: msgBytes, expression: targetBytes, comparisonValue: minValueBytes })
         console.log("output.publicSignals", output.publicSignals)
-        expect(output.publicSignals[output.publicSignals.length - 2]).to.eq("1")
+        expect(output.publicSignals[output.publicSignals.length - 1]).to.eq("1")
     })
+
+
 })
 
 export { }
