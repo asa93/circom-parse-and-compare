@@ -8,7 +8,8 @@
     "build": "npm run build:circom && npm run build:ts",
     "setup": "cd setup && snarkjs powersoftau new bn128 16 pot16_0000.ptau -v && snarkjs powersoftau contribute pot16_0000.ptau pot16_0001.ptau -v && snarkjs powersoftau prepare phase2 pot16_0001.ptau pot16_final.ptau -v",
     "start": "npm run build:ts && node build/src/index.js",
-    "test": "npm run build:ts && mocha build/test/*.js"
+    "test": "npm run build:ts && mocha build/test/*.js",
+    "test:eddsa": "npm run build:ts && mocha build/test/eddsa.js"
   },
   "dependencies": {
     "@guildofweavers/galois": "^0.4.22",

@@ -70,4 +70,4 @@ template ParseAndCompare (msgBytesLen ) {
 
 }
 
-component main = ParseAndCompare(2000);
+component main = ParseAndCompare(20);

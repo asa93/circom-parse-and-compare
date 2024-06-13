@@ -1,8 +1,9 @@
 const { expect } = require("chai")
 const { parse } = require("../src/circuit-wrapper.js");
+const { toBytesArr } = require("./util")
 
 describe("Parse", async () => {
-    const MAX_LENGTH = 2000;
+    const MAX_LENGTH = 20;
 
     it("returns 0 if values are equal", async () => {
 
@@ -185,16 +186,5 @@ function padValue(value: string, msg: string) {
     return padded.replace("*".repeat(value.length), value)
 }
 
-/// convert string to array of strying representing bytes
-/// snarkjs only accepts big number in string
-function toBytesArr(str: string): string[] {
-    const byteArray = Buffer.from(str, 'utf-8');
-    let bytesArrayStr: string[] = []
-    byteArray.forEach(byte => {
-        bytesArrayStr.push(byte.toString())
-    });
 
-    return bytesArrayStr
-
-}
 
