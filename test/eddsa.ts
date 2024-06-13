@@ -6,7 +6,7 @@ describe("Eddsa signature", async () => {
 
     it("should verify signature", async () => {
 
-        const msg = "ahe";
+        const msg = "ahi";
         const msgBytes = toBytesArr(msg)
 
         const A = [103, 85, 40, 86, 202, 82, 94, 144, 45, 179, 201, 157, 172, 172, 144, 250, 134, 100, 98, 111, 102, 54, 134, 70, 156, 116, 212, 105, 52, 207, 70, 75]
